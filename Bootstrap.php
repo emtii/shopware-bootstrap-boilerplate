@@ -87,7 +87,7 @@ class Shopware_Plugins_Frontend_Boilerplate_Bootstrap
 
         if (!$this->assertMinimumVersion($minVersion)) {
             throw new \RuntimeException(
-                'At least Shopware ' . $minVersion . ' is required'
+                'At least Shopware ' . $minVersion . ' is required.'
             );
         }
 
