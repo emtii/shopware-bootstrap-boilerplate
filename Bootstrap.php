@@ -1,100 +1,123 @@
 <?php
+declare(strict_types = 1);
+
 /**
- * Shopware Plugin Bootstrap Boilerplate
+ * Class Logger
  *
- * @author: emtii
- * @date: 23.05.15
- * @time: 01:21
- *
+ * @category   Bestit
+ * @package    Bestit
+ * @subpackage Bootstrap
+ * @author     Marcel Thiesies <thiesies@bestit-online.dem>
+ * @copyright  2016 best it GmbH & Co. KG
+ * @license    http://www.bestit-online.de proprietary
+ * @link       http://www.bestit-online.de
  */
-class Shopware_Plugins_Frontend_Boilerplate_Bootstrap extends Shopware_Components_Plugin_Bootstrap {
-
-    const PLUGIN_VERSION        = "";
-    const PLUGIN_AUTHOR         = "";
-    const PLUGIN_COPYRIGHT      = "";
-    const PLUGIN_LABEL          = "";
-    const PLUGIN_DESCRIPTION    = "";
-    const PLUGIN_SUPPORT        = "";
-    const PLUGIN_LINK           = "";
-
-    const DEBUG                 = false;
-
-    /*
-     * Helper method to log ether into /logs/ or browser console.
-     * Choose by using proper properties.
+class Shopware_Plugins_Frontend_Boilerplate_Bootstrap
+    extends Shopware_Components_Plugin_Bootstrap
+{
+    /**
+     * Returns plugin meta data if file is available.
      *
-     * @param integer $logTarget
-     *      1 => file
-     *      2 => browser console
-     * @param string $logType e.g. info/warn/error
-     * @param string $logMessage
+     * @return mixed
+     * @throws Exception
      */
-    private function log($logTarget, $logType, $logMessage) {
-        if(self::DEBUG == true) {
-            if($logTarget && $logType && $logMessage) {
+    private function _getPluginJson()
+    {
+        $json = json_decode(
+            file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'plugin.json'),
+            true
+        );
 
-                $logMessage .= "[" . self::PLUGIN_LABEL . "] " . $logMessage;
-
-                switch ($logTarget) {
-                    case 1:
-                        $this->logToFile($logType, $logMessage);
-                        break;
-                    case 2:
-                        $this->logToBrowserConsole($logMessage);
-                        break;
-                    default:
-                        $this->logToFile($logType, $logMessage);
-                }
-            }
-            else {
-                return;
-            }
-        }
-        else {
-            return;
+        if (is_array($json) === true) {
+            return $json;
+        } else {
+            throw new Exception('Cannot find plugin.json file.');
         }
     }
 
-    /*
-     * Little helper method, get used in log()
+    /**
+     * Returns plugin information.
      *
-     * @param integer $type
-     * @param string $msg
+     * @return array
+     * @throws Exception
      */
-    private function logToFile($type, $msg) {
-        if($type && $msg) {
-            switch($type) {
-                case "info":
-                    Shopware()->PluginLogger()->info($msg);
-                    break;
-                case "warn":
-                    Shopware()->PluginLogger()->warning($msg);
-                    break;
-                case "error":
-                    Shopware()->PluginLogger()->error($msg);
-                    break;
-                default:
-                    Shopware()->PluginLogger()->info($msg);
-            }
-        }
-        else {
-            return;
+    public function getInfo()
+    {
+        $json = $this->_getPluginJson();
+
+        return array(
+            'version' => $json['currentVersion'],
+            'label' => $json['label']['de'],
+            'copyright' => $json['copyright'],
+            'author' => $json['author'],
+            'supplier' => $json['supplier'],
+            'description' => $json['description'],
+            'support' => $json['support'],
+            'link' => $json['link']
+        );
+    }
+
+    /**
+     * Get Plugin Version, check for version.
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function getVersion()
+    {
+        $json = $this->_getPluginJson();
+
+        if ($json) {
+            return $json['currentVersion'];
+        } else {
+            throw new Exception('The plugin has an invalid version file.');
         }
     }
 
-    /*
-     * Little helper method, get used in log()
+    /**
+     * Install plugin.
      *
-     * @param string $msg
+     * @return mixed
+     * @throws Exception
      */
-    private function logToBrowserConsole($msg) {
-        if($msg) {
-            Shopware()->Debuglogger()->info($msg);
+    public function install()
+    {
+        $json = $this->_getPluginJson();
+        $minVersion = $json['compatibility']['minimumVersion'];
+
+        if (!$this->assertMinimumVersion($minVersion)) {
+            throw new \RuntimeException(
+                'At least Shopware ' . $minVersion . ' is required'
+            );
         }
-        else {
-            return;
-        }
+
+        return true;
     }
 
-} // End of Bootstrap
+    /**
+     * Uninstall plugin.
+     *
+     * @return bool
+     */
+    public function uninstall()
+    {
+        return true;
+    }
+
+    /**
+     * Update plugin.
+     *
+     * @param string $oldVersion old plugin version
+     *
+     * @return boolean
+     */
+    public function update($oldVersion)
+    {
+        return true;
+    }
+
+    public function foobarTest()
+    {
+    }
+}
 
